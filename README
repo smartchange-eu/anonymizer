@@ -1,0 +1,111 @@
+# SmartCHANGE Anonymization Service
+
+The SmartCHANGE Anonymization Service is a Python-based service used to extract, integrate, transform, and export feasibility study data from a FHIR server.
+
+The service retrieves study information from different FHIR resources and generates CSV datasets for further analysis. It can produce an anonymized dataset, a non-anonymized dataset, or both.
+
+The service is provided as a Docker container.
+
+## Data Sources
+
+The service retrieves information from the following FHIR resources:
+
+- Patient
+- ResearchSubject
+- Observation
+- NutritionIntake
+- QuestionnaireResponse
+- RiskAssessment
+
+The retrieved information includes participant information, study group assignments, anthropometric and clinical measurements, physical activity, dietary information, lifestyle and health history, family information, and risk assessment information.
+
+## Output
+
+The service can generate two CSV files:
+
+- `feasibility_study_data_anonymized.csv`
+- `feasibility_study_data_with_identifiers.csv`
+
+The anonymized dataset removes direct identifiers and applies generalization, categorization, and transformation procedures to selected variables.
+
+The non-anonymized dataset contains participant identifiers and other identifiable information and should only be accessed by authorized data owners.
+
+Both files are written to the configured output directory.
+
+**Note:** Certain transformation parameters, including clinical categorization thresholds, have been modified in the publicly available version to avoid disclosing implementation-specific details. These illustrative parameters must be reviewed and adapted by authorized data owners before processing real healthcare data. Removal of direct identifiers does not, by itself, guarantee anonymity.
+
+## Requirements
+
+To run the service using Docker, the following are required:
+
+- Docker with Docker Compose
+- Access to an authorized FHIR server
+- A valid API token
+
+## Configuration
+
+The service uses the following environment variables:
+
+| Variable | Description |
+|---|---|
+| `FHIR_BASE` | Base URL of the FHIR server |
+| `FHIR_API_KEY` | API token used for authentication |
+| `DOWNLOADS_DIR` | Local directory where generated CSV files are stored when using Docker Compose |
+| `OUT_DIR` | Output directory inside the container |
+
+An example configuration is provided in `.env.example`:
+
+```env
+FHIR_BASE=https://your-fhir-server.example/fhir
+FHIR_API_KEY=your_api_token_here
+DOWNLOADS_DIR=./downloads
+```
+
+Copy `.env.example` to `.env` and replace the placeholder values with the appropriate configuration.
+
+The `.env` file should not be committed to the public repository.
+
+## Usage
+
+1. Clone or download the repository.
+2. Copy `.env.example` to `.env`.
+3. Configure the FHIR server URL, API token, and output directory.
+4. Build and run the service:
+
+```bash
+docker compose up --build
+```
+
+By default, the service generates both CSV files.
+
+The output type can be selected using the `--csv` argument:
+
+| Option | Description |
+|---|---|
+| `ident` | Generate the non-anonymized dataset |
+| `anon` | Generate the anonymized dataset |
+| `both` | Generate both datasets (default) |
+
+To change the output type, modify the `command` field in `compose.yaml`, for example:
+
+```yaml
+command: ["--csv", "anon"]
+```
+
+The service also supports the optional `--patient-ids` argument to export data for selected patients. If this argument is omitted, all accessible patients are processed.
+
+The generated CSV files are stored in the directory specified by `DOWNLOADS_DIR`.
+
+## Data Protection
+
+No healthcare datasets, participant records, or authentication credentials are distributed with this repository.
+
+The service is intended for use by authorized healthcare data owners with appropriate access permissions.
+
+The publicly available code includes illustrative transformation parameters that differ from those used in the original implementation. These parameters must be reviewed and validated before operational use.
+
+Generated datasets, including those without direct identifiers, must be handled according to applicable data protection requirements and data-sharing agreements. The service does not independently establish that an exported dataset is sufficiently anonymized for public release.
+
+## License
+
+This software is released under the MIT License.

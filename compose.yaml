@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    image: smartchange-anonymizer:latest
+    environment:
+      FHIR_BASE: ${FHIR_BASE}
+      FHIR_API_KEY: ${FHIR_API_KEY}
+      OUT_DIR: /downloads
+    volumes:
+      - ${DOWNLOADS_DIR}:/downloads
+    command: ["--csv", "both"]
